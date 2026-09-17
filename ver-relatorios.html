@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocorrências</title>
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333333;
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .relatorio-card {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .relatorio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        .relatorio-info span {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        /* Estilos dos status */
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status.aberto {
+            background-color: #ffc107;
+            color: #856404;
+        }
+
+        .status.resolvido {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .relatorio-body p {
+            margin: 6px 0;
+            color: #555;
+        }
+
+        .resposta-section {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px dashed #ccc;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+            margin-top: 5px;
+            margin-bottom: 8px;
+            resize: vertical;
+        }
+
+        .btn {
+            text-decoration: none;
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-responder {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .btn-responder:hover {
+            background-color: #138496;
+        }
+
+        .btn-enviar-resposta {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-enviar-resposta:hover {
+            background-color: #218838;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: #777;
+            margin-top: 20px;
+        }
+
+        .actions {
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-voltar {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-voltar:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-inicio {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-inicio:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Relatórios Enviados</h1>
+
+        <div id="listaRelatorios">
+            <!-- Os relatórios serão gerados aqui dinamicamente via JavaScript -->
+        </div>
+
+        <div class="actions">
+            <a href="enviar-relatorio.html" class="btn btn-voltar">Novo Relatório</a>
+            <a href="index.html" class="btn btn-inicio">Tela Inicial</a>
+        </div>
+    </div>
+
+    <script>
+        function carregarRelatorios() {
+            const container = document.getElementById('listaRelatorios');
+            const relatorios = JSON.parse(localStorage.getItem('relatorios')) || [];
+
+            if (relatorios.length === 0) {
+                container.innerHTML = '<p class="empty-msg">Nenhum relatório enviado até o momento.</p>';
+                return;
+            }
+
+            let html = '';
+
+            relatorios.forEach((rel, index) => {
+                const statusClass = rel.status === 'Resolvido' ? 'resolvido' : 'aberto';
+                const statusTexto = rel.status === 'Resolvido' ? 'Resolvido' : 'Em aberto';
+
+                html += `
+                    <div class="relatorio-card">
+                        <div class="relatorio-header">
+                            <div class="relatorio-info">
+                                Relatório #<span>${rel.numero}</span>
+                            </div>
+                            <div>
+                                <span class="status ${statusClass}">${statusTexto}</span>
+                            </div>
+                        </div>
+                        <div class="relatorio-body">
+                            <p><strong>Tipo de Erro:</strong> ${rel.tipoErro}</p>
+                            <p><strong>Data/Hora do Envio:</strong> ${rel.data}</p>
+                `;
+
+                if (rel.status === 'Resolvido') {
+                    html += `
+                            <p><strong>O que foi feito:</strong> ${rel.resposta}</p>
+                    `;
+                } else {
+                    html += `
+                            <div class="resposta-section" id="secao-resp-${index}">
+                                <button class="btn btn-responder" onclick="mostrarCampoResposta(${index})">Responder Relatório</button>
+                                <div id="form-resp-${index}" style="display: none; margin-top: 10px;">
+                                    <label for="texto-resp-${index}"><strong>Descreva o que foi feito:</strong></label>
+                                    <textarea id="texto-resp-${index}" rows="3" placeholder="Digite a solução aplicada..."></textarea>
+                                    <button class="btn btn-enviar-resposta" onclick="salvarResposta(${index})">Enviar Resposta</button>
+                                </div>
+                            </div>
+                    `;
+                }
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function mostrarCampoResposta(index) {
+            document.querySelector(`#secao-resp-${index} .btn-responder`).style.display = 'none';
+            document.getElementById(`form-resp-${index}`).style.display = 'block';
+        }
+
+        function salvarResposta(index) {
+            const respostaTexto = document.getElementById(`texto-resp-${index}`).value.trim();
+
+            if (!respostaTexto) {
+                alert('Por favor, escreva o que foi feito antes de enviar.');
+                return;
+            }
+
+            let relatorios = JSON.parse(localStorage.getItem('relatorios')) || [];
+
+            relatorios[index].status = 'Resolvido';
+            relatorios[index].resposta = respostaTexto;
+
+            localStorage.setItem('relatorios', JSON.stringify(relatorios));
+
+            carregarRelatorios();
+        }
+
+        // Carrega os relatórios ao abrir a página
+        carregarRelatorios();
+    </script>
+
+</body>
+</html>
