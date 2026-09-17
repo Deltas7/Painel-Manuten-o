@@ -4,28 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel da Manutenção</title>
+    
     <!-- Script correto do Supabase -->
-<script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net"></script>
 
-<script>
-    // 1. Configure suas chaves do Supabase aqui
-    const supabaseUrl = 'https://ueouphbjiylhvlqqknco.supabase.co'
-    const supabaseKey = 'sb_publishable_2WluWKY6T2l0Zn5JUazT9Q_XwtLwlSM'
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey)
+    <script>
+        // 1. Configure suas chaves do Supabase aqui
+        const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || 'https://ueouphbjiylhvlqqknco.supabase.co'
+        const supabaseKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'sb_publishable_2WluWKY6T2l0Zn5JUazT9Q_XwtLwlSM'
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey)
 
-    // 2. Verifica se o usuário está logado antes de carregar o painel
-    async function verificarSessao() {
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        // Se NÃO houver sessão ativa, manda para a tela de login
-        if (!session) {
+        // 2. Verifica se o usuário está logado antes de carregar o painel
+        async function verificarSessao() {
+            const { data: { session } } = await supabase.auth.getSession()
+            
+            // Se NÃO houver sessão ativa, manda para a tela de login
+            if (!session) {
+                window.location.href = 'login.html'
+            }
+        }
+
+        // 3. Função para encerrar a sessão e deslogar
+        async function deslogar() {
+            await supabase.auth.signOut()
             window.location.href = 'login.html'
         }
-    }
 
-    // Executa a checagem assim que a página abre
-    verificarSessao()
-</script>
+        // Executa a checagem assim que a página abre
+        verificarSessao()
+    </script>
 
     <style>
         body {
@@ -70,6 +77,10 @@
             transition: background-color 0.3s ease, transform 0.1s ease;
             color: white;
             display: inline-block;
+            box-sizing: border-box;
+            border: none;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
         }
 
         .btn:active {
@@ -99,6 +110,15 @@
         .btn-mapa:hover {
             background-color: #5a32a3;
         }
+
+        /* Botão Sair (Vermelho) */
+        .btn-sair {
+            background-color: #dc3545;
+            margin-top: 10px;
+        }
+        .btn-sair:hover {
+            background-color: #bd2130;
+        }
     </style>
 </head>
 <body>
@@ -113,8 +133,11 @@
             <!-- Botão de Ver Relatórios -->
             <a href="ver-relatorios.html" class="btn btn-ver">Ocorrências Registradas</a>
             
-            <!-- Botão do Mapa dos Parquímetros (Substitua "SEU_LINK_AQUI" pelo link real) -->
-            <a href="https://estapar.olhovivo.online/" class="btn btn-mapa" target="_blank">Mapa dos Parquímetros</a>
+            <!-- Botão do Mapa dos Parquímetros -->
+            <a href="https://olhovivo.online" class="btn btn-mapa" target="_blank">Mapa dos Parquímetros</a>
+
+            <!-- Botão Sair do Sistema -->
+            <button onclick="deslogar()" class="btn btn-sair">Sair</button>
         </div>
     </div>
 
